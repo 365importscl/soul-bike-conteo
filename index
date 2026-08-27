@@ -1,0 +1,835 @@
+<meta charset="UTF-8">
+<title>Conteo Soul Bike</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --paper:#f7f6f1;
+    --paper-raised:#ffffff;
+    --ink:#17181a;
+    --ink-soft:#3a3b3d;
+    --line:#e3e0d6;
+    --muted:#8a8778;
+    --warn:#8f4e1c;
+    --warn-bg:#f3e6d6;
+    --good:#3f6b4a;
+    --good-bg:#e3ede4;
+    --shadow: 0 30px 60px -30px rgba(23,24,26,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#141414;
+      --paper-raised:#1d1d1c;
+      --ink:#f4f3ee;
+      --ink-soft:#c9c7bd;
+      --line:#333330;
+      --muted:#94917f;
+      --warn:#e0a56b;
+      --warn-bg:#3a2c1a;
+      --good:#8fc39b;
+      --good-bg:#1e2e22;
+      --shadow: 0 30px 60px -30px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#141414;
+    --paper-raised:#1d1d1c;
+    --ink:#f4f3ee;
+    --ink-soft:#c9c7bd;
+    --line:#333330;
+    --muted:#94917f;
+    --warn:#e0a56b;
+    --warn-bg:#3a2c1a;
+    --good:#8fc39b;
+    --good-bg:#1e2e22;
+    --shadow: 0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:28px 14px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  .stage{
+    width:100%;
+    max-width:430px;
+    height:min(880px, 92vh);
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:34px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  @media (max-width:480px){
+    body{padding:0;}
+    .stage{
+      max-width:100%;
+      height:100vh;
+      border-radius:0;
+      border:none;
+      box-shadow:none;
+    }
+  }
+
+  .screen{
+    display:none;
+    flex-direction:column;
+    height:100%;
+    overflow:hidden;
+  }
+  .screen.active{display:flex;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    flex:0 0 auto;
+    padding:18px 20px 14px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--paper);
+  }
+  .topbar img{height:26px; width:auto; display:block;}
+  .topbar .titles{display:flex; flex-direction:column; line-height:1.15;}
+  .eyebrow{
+    font:600 0.68rem/1 'IBM Plex Sans';
+    letter-spacing:0.11em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .back-btn{
+    appearance:none; border:none; background:none; color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    width:34px; height:34px; margin-left:-6px; border-radius:10px; cursor:pointer;
+    flex:0 0 auto;
+  }
+  .back-btn:hover{background:var(--line);}
+  .back-btn:focus-visible, button:focus-visible, input:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+  .back-btn svg{width:20px; height:20px;}
+
+  /* ---------- home ---------- */
+  .home-scroll{flex:1 1 auto; overflow-y:auto; padding:22px 20px 28px;}
+  .brand-block{display:flex; flex-direction:column; align-items:center; text-align:center; gap:10px; margin-bottom:26px;}
+  .brand-block img{height:64px; width:auto;}
+  .brand-tag{font:500 0.88rem/1.4 'IBM Plex Sans'; color:var(--muted); max-width:26ch;}
+
+  h2.section-title{
+    font:800 1.05rem/1.2 'Archivo', sans-serif;
+    margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+  p.section-sub{
+    font:500 0.82rem/1.4 'IBM Plex Sans';
+    color:var(--muted);
+    margin:0 0 12px;
+  }
+
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;}
+  .chip{
+    font:600 0.85rem/1 'IBM Plex Sans';
+    padding:10px 16px;
+    border-radius:100px;
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .chip.selected{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+  .chip-other-input{
+    font:600 0.85rem 'IBM Plex Sans';
+    padding:10px 14px;
+    border-radius:100px;
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    color:var(--ink);
+    width:140px;
+    display:none;
+  }
+  .chip-other-input.show{display:inline-block;}
+
+  .who-hint{
+    font:500 0.78rem 'IBM Plex Sans'; color:var(--warn);
+    margin:6px 0 0; min-height:1.2em;
+  }
+
+  .area-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:10px;
+  }
+  .area-card{
+    text-align:left;
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    border-radius:16px;
+    padding:14px 14px 12px;
+    cursor:pointer;
+    display:flex; flex-direction:column; gap:10px;
+    min-height:104px;
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .area-card:active{transform:scale(0.97);}
+  .area-card .area-name{
+    font:700 0.98rem/1.15 'Archivo', sans-serif;
+    letter-spacing:-0.005em;
+  }
+  .area-count{font:600 0.72rem/1 'IBM Plex Sans'; color:var(--muted);}
+  .area-status{
+    margin-top:auto;
+    font:600 0.7rem/1 'IBM Plex Sans';
+    letter-spacing:0.02em;
+    padding:5px 9px;
+    border-radius:8px;
+    width:fit-content;
+  }
+  .area-status.ok{color:var(--good); background:var(--good-bg);}
+  .area-status.warn{color:var(--warn); background:var(--warn-bg);}
+
+  .preview-note{
+    margin-top:24px;
+    font:500 0.72rem/1.5 'IBM Plex Sans';
+    color:var(--muted);
+    text-align:center;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+  }
+
+  /* ---------- count screen ---------- */
+  .count-list{flex:1 1 auto; overflow-y:auto; padding:6px 20px 16px;}
+  .product-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:16px 2px;
+    border-bottom:1px solid var(--line);
+  }
+  .product-info{flex:1 1 auto; min-width:0;}
+  .product-name{font:700 0.95rem/1.25 'Archivo', sans-serif; letter-spacing:-0.005em;}
+  .product-meta{font:500 0.74rem/1.4 'IBM Plex Sans'; color:var(--muted); margin-top:2px;}
+  .pill-warn{
+    display:inline-block;
+    margin-top:5px;
+    font:600 0.66rem/1 'IBM Plex Sans';
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--warn);
+    background:var(--warn-bg);
+    padding:3px 8px;
+    border-radius:6px;
+  }
+
+  .stepper{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .step-btn{
+    width:32px; height:32px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    color:var(--ink);
+    font:600 1.05rem/1 'IBM Plex Sans';
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .step-btn:active{background:var(--line);}
+  .count-input{
+    width:64px;
+    text-align:center;
+    font:600 1.02rem/1 'IBM Plex Mono', monospace;
+    font-variant-numeric:tabular-nums;
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:7px 2px;
+    background:var(--paper-raised);
+    color:var(--ink);
+  }
+  .unit-label{font:600 0.66rem 'IBM Plex Sans'; color:var(--muted); width:26px; text-align:left;}
+
+  /* ---------- footer / buttons ---------- */
+  .footer-bar{
+    flex:0 0 auto;
+    padding:14px 20px calc(16px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line);
+    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .progress-line{
+    display:flex; justify-content:space-between; align-items:center;
+    font:600 0.72rem 'IBM Plex Sans'; color:var(--muted);
+  }
+  .progress-track{
+    height:4px; border-radius:4px; background:var(--line); overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; background:var(--ink); border-radius:4px;
+    transition:width .25s ease;
+  }
+  .btn-primary{
+    appearance:none; border:none; cursor:pointer;
+    background:var(--ink); color:var(--paper);
+    font:700 0.95rem 'Archivo', sans-serif;
+    letter-spacing:0.01em;
+    padding:15px 18px;
+    border-radius:14px;
+    width:100%;
+  }
+  .btn-primary:active{opacity:0.88;}
+  .btn-secondary{
+    appearance:none; cursor:pointer;
+    background:none; color:var(--ink);
+    border:1px solid var(--line);
+    font:700 0.9rem 'Archivo', sans-serif;
+    padding:14px 18px;
+    border-radius:14px;
+    width:100%;
+  }
+
+  /* ---------- confirm screen ---------- */
+  .confirm-scroll{flex:1 1 auto; overflow-y:auto; padding:34px 24px 20px; display:flex; flex-direction:column; align-items:center; text-align:center;}
+  .check-wrap{width:72px; height:72px; margin-bottom:18px;}
+  .check-wrap circle, .check-wrap path{
+    fill:none; stroke:var(--good); stroke-width:5.5; stroke-linecap:round; stroke-linejoin:round;
+  }
+  .check-circle{stroke-dasharray:220; stroke-dashoffset:220; animation:draw 0.6s ease forwards;}
+  .check-mark{stroke-dasharray:40; stroke-dashoffset:40; animation:draw 0.35s ease 0.55s forwards;}
+  @keyframes draw{to{stroke-dashoffset:0;}}
+
+  .confirm-title{font:800 1.3rem 'Archivo', sans-serif; margin:0 0 6px; text-wrap:balance;}
+  .confirm-sub{font:500 0.88rem 'IBM Plex Sans'; color:var(--muted); margin:0 0 22px;}
+
+  .alert-card{
+    width:100%;
+    text-align:left;
+    background:var(--warn-bg);
+    border-radius:16px;
+    padding:16px 16px 6px;
+    margin-bottom:20px;
+  }
+  .alert-card h3{
+    font:700 0.78rem 'IBM Plex Sans'; letter-spacing:0.02em; text-transform:uppercase;
+    color:var(--warn); margin:0 0 10px;
+  }
+  .alert-item{
+    display:flex; justify-content:space-between; gap:10px;
+    font:600 0.86rem 'IBM Plex Sans'; color:var(--ink-soft);
+    padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid rgba(0,0,0,0.08);
+  }
+  .alert-item:last-child{border-bottom:none;}
+  .alert-item b{font:600 0.86rem 'IBM Plex Mono', monospace; color:var(--warn);}
+
+  .confirm-actions{width:100%; display:flex; flex-direction:column; gap:10px; margin-top:auto;}
+
+  ::-webkit-scrollbar{width:0; height:0;}
+</style>
+
+<div class="stage">
+
+  <!-- ================= HOME ================= -->
+  <section class="screen active" id="screen-home">
+    <div class="home-scroll">
+      <div class="brand-block">
+        <img id="home-logo" alt="Soul Bike" />
+        <p class="brand-tag">Conteo semanal de inventario &mdash; cocina y barra</p>
+      </div>
+
+      <h2 class="section-title">¿Quién eres?</h2>
+      <p class="section-sub">Selecciona tu nombre para registrar quién contó.</p>
+      <div class="chip-row" id="who-chips"></div>
+      <p class="who-hint" id="who-hint"></p>
+
+      <div style="height:22px;"></div>
+
+      <h2 class="section-title">Elige el área a contar</h2>
+      <p class="section-sub">Cada área muestra si algo ya está bajo el mínimo.</p>
+      <div class="area-grid" id="area-grid"></div>
+
+      <p class="preview-note">Vista previa &mdash; los datos de ejemplo aún no están conectados al Sheet real de Karina.</p>
+    </div>
+  </section>
+
+  <!-- ================= COUNT ================= -->
+  <section class="screen" id="screen-count">
+    <div class="topbar">
+      <button class="back-btn" id="btn-back" aria-label="Volver">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="titles">
+        <span class="eyebrow" id="count-responsable">Responsable</span>
+        <h2 class="section-title" id="count-area-name" style="margin:0;">Área</h2>
+      </div>
+    </div>
+    <div class="count-list" id="count-list"></div>
+    <div class="footer-bar">
+      <div class="progress-line">
+        <span id="progress-text">0 de 0 productos contados</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <button class="btn-primary" id="btn-guardar">Guardar conteo</button>
+    </div>
+  </section>
+
+  <!-- ================= CONFIRM ================= -->
+  <section class="screen" id="screen-confirm">
+    <div class="confirm-scroll">
+      <svg class="check-wrap" viewBox="0 0 80 80">
+        <circle class="check-circle" cx="40" cy="40" r="35"/>
+        <path class="check-mark" d="M24 41l11 11 21-23"/>
+      </svg>
+      <h2 class="confirm-title">Conteo guardado</h2>
+      <p class="confirm-sub" id="confirm-summary"></p>
+
+      <div class="alert-card" id="alert-card" style="display:none;">
+        <h3>Van a la próxima lista de compras</h3>
+        <div id="alert-list"></div>
+      </div>
+
+      <div class="confirm-actions">
+        <button class="btn-primary" id="btn-otra-area">Contar otra área</button>
+        <button class="btn-secondary" id="btn-terminar">Terminar</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var LOGO_BLACK = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iNDgiPjx0ZXh0IHg9IjAiIHk9IjM2IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI4MDAiIGxldHRlci1zcGFjaW5nPSIxIiBmaWxsPSIlMjMxNzE4MWEiPlNPVUwgQklLRTwvdGV4dD48L3N2Zz4=";
+  var LOGO_WHITE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iNDgiPjx0ZXh0IHg9IjAiIHk9IjM2IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI4MDAiIGxldHRlci1zcGFjaW5nPSIxIiBmaWxsPSIlMjNmNGYzZWUiPlNPVUwgQklLRTwvdGV4dD48L3N2Zz4=";
+
+  var isDark = function(){
+    var explicit = document.documentElement.getAttribute('data-theme');
+    if(explicit === 'dark') return true;
+    if(explicit === 'light') return false;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  };
+  function setLogo(){
+    document.getElementById('home-logo').src = isDark() ? LOGO_WHITE : LOGO_BLACK;
+  }
+  setLogo();
+  if(window.matchMedia){
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setLogo);
+  }
+
+  var AREAS = [
+    { id:'vegetales', name:'Vegetales', real:true, products:[
+      {n:'Aguacate', u:'kg', min:150, last:34.67},
+      {n:'Ají dulce', u:'kg', min:20, last:25},
+      {n:'Ají Peruano', u:'kg', min:200, last:50.67},
+      {n:'Ajo Importado', u:'kg', min:15, last:18},
+      {n:'Ajo porro', u:'kg', min:10, last:14},
+      {n:'Albahaca', u:'gr', min:500, last:600},
+      {n:'Alcaparra', u:'gr', min:300, last:400},
+      {n:'Arándanos', u:'kg', min:8, last:9},
+      {n:'Banana', u:'kg', min:12, last:15},
+      {n:'Batata rosada', u:'kg', min:500, last:57.67}
+    ]},
+    { id:'almacen', name:'Almacén', real:true, products:[
+      {n:'Aceite de Coco', u:'ml', min:0, last:0},
+      {n:'Aceite de Sésamo', u:'gr', min:2500, last:1900},
+      {n:'Aceite Vegetal', u:'lt', min:12.33, last:14},
+      {n:'Aceitunas negras', u:'gr', min:0, last:0},
+      {n:'Agua Oxigenada', u:'ml', min:0, last:3}
+    ]},
+    { id:'barra', name:'Barra', real:false, products:[
+      {n:'Ron blanco', u:'bot', min:6, last:4},
+      {n:'Vodka', u:'bot', min:6, last:8},
+      {n:'Ginebra', u:'bot', min:4, last:5},
+      {n:'Limón', u:'kg', min:5, last:2},
+      {n:'Hielo', u:'kg', min:20, last:25},
+      {n:'Agua tónica', u:'uni', min:24, last:30}
+    ]},
+    { id:'congelador', name:'Congelador', real:false, products:[
+      {n:'Papas fritas', u:'kg', min:15, last:10},
+      {n:'Pulpa de maracuyá', u:'kg', min:6, last:7},
+      {n:'Pulpa de fresa', u:'kg', min:6, last:3},
+      {n:'Pan de hamburguesa', u:'uni', min:50, last:60},
+      {n:'Helado de vainilla', u:'lt', min:8, last:6}
+    ]},
+    { id:'nevera-produccion', name:'Nevera Producción', real:false, products:[
+      {n:'Salsa BBQ casera', u:'lt', min:4, last:3},
+      {n:'Mayonesa casera', u:'lt', min:5, last:6},
+      {n:'Fondo de pollo', u:'lt', min:6, last:4},
+      {n:'Vinagreta', u:'lt', min:3, last:3},
+      {n:'Puré de papa', u:'kg', min:5, last:5}
+    ]},
+    { id:'neveras-servicio', name:'Neveras de Servicio', real:true, products:[
+      {n:'Acai', u:'gr', min:0, last:0},
+      {n:'Aceite verde', u:'gr', min:44, last:44},
+      {n:'Aceitunas negras', u:'gr', min:163.5, last:90},
+      {n:'Aderezo de Naranja', u:'gr', min:42.5, last:45},
+      {n:'Aderezo de Bellini', u:'gr', min:58, last:58},
+      {n:'Aderezo de Mostaza', u:'gr', min:137.51, last:140},
+      {n:'Albahaca', u:'gr', min:0, last:0},
+      {n:'Arandanos', u:'gr', min:0, last:0},
+      {n:'Boconccini', u:'gr', min:289, last:300}
+    ]}
+  ];
+
+  var PEOPLE = ['Walner','Gabriela','Karina'];
+
+  var VEGETALES_API = 'https://script.google.com/macros/s/AKfycbzNiIdzvyDezQ2xqpBZ0iiYhn3WymjL2w1gQ3WkrKFAn3l_x0TRjdGMpMr3Kn7KkHcJkA/exec';
+
+  var state = {
+    responsable:null,
+    areaId:null,
+    entries:{}, // productName -> value entered this session
+    vegetalesTargetColumn:null,
+    vegetalesStatus:null // null | 'loading' | 'ok' | 'error'
+  };
+
+  try{
+    var saved = localStorage.getItem('soulbike-conteo-responsable');
+    if(saved) state.responsable = saved;
+  }catch(e){}
+
+  function fmt(v){
+    if(v === null || v === undefined || isNaN(v)) return '';
+    var r = Math.round(v*100)/100;
+    return (r % 1 === 0) ? String(r) : String(r);
+  }
+
+  function areaById(id){
+    for(var i=0;i<AREAS.length;i++) if(AREAS[i].id===id) return AREAS[i];
+    return null;
+  }
+
+  function areaBelowCount(area){
+    var c = 0;
+    area.products.forEach(function(p){ if(p.min>0 && p.last < p.min) c++; });
+    return c;
+  }
+
+  /* ---------------- render: home ---------------- */
+  function renderWho(){
+    var wrap = document.getElementById('who-chips');
+    wrap.innerHTML = '';
+    PEOPLE.forEach(function(name){
+      var chip = document.createElement('button');
+      chip.className = 'chip' + (state.responsable===name ? ' selected':'');
+      chip.type = 'button';
+      chip.textContent = name;
+      chip.addEventListener('click', function(){
+        state.responsable = name;
+        try{ localStorage.setItem('soulbike-conteo-responsable', name); }catch(e){}
+        document.getElementById('who-hint').textContent = '';
+        renderWho();
+      });
+      wrap.appendChild(chip);
+    });
+    var otherChip = document.createElement('button');
+    var isOther = state.responsable && PEOPLE.indexOf(state.responsable) === -1;
+    otherChip.className = 'chip' + (isOther ? ' selected':'');
+    otherChip.type = 'button';
+    otherChip.textContent = 'Otro';
+    otherChip.addEventListener('click', function(){
+      var input = document.getElementById('other-input');
+      input.classList.add('show');
+      input.focus();
+    });
+    wrap.appendChild(otherChip);
+
+    var input = document.createElement('input');
+    input.id = 'other-input';
+    input.className = 'chip-other-input' + (isOther ? ' show':'');
+    input.placeholder = 'Tu nombre';
+    input.value = isOther ? state.responsable : '';
+    input.addEventListener('change', function(){
+      if(input.value.trim()){
+        state.responsable = input.value.trim();
+        try{ localStorage.setItem('soulbike-conteo-responsable', state.responsable); }catch(e){}
+        document.getElementById('who-hint').textContent = '';
+      }
+    });
+    wrap.appendChild(input);
+  }
+
+  function renderAreas(){
+    var grid = document.getElementById('area-grid');
+    grid.innerHTML = '';
+    AREAS.forEach(function(area){
+      var below = areaBelowCount(area);
+      var card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'area-card';
+      card.innerHTML =
+        '<span class="area-name">'+area.name+'</span>' +
+        '<span class="area-count">'+area.products.length+' productos</span>' +
+        '<span class="area-status '+(below>0?'warn':'ok')+'">'+
+          (below>0 ? (below+' bajo mínimo') : 'Todo al día') +
+        '</span>';
+      card.addEventListener('click', function(){
+        if(!state.responsable){
+          document.getElementById('who-hint').textContent = 'Selecciona quién eres primero ↑';
+          document.getElementById('who-hint').scrollIntoView({behavior:'smooth', block:'center'});
+          return;
+        }
+        openArea(area.id);
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  /* ---------------- count screen ---------------- */
+  function openArea(areaId){
+    state.areaId = areaId;
+    state.entries = {};
+    var area = areaById(areaId);
+    document.getElementById('count-area-name').textContent = area.name;
+    document.getElementById('count-responsable').textContent = 'Responsable: ' + state.responsable;
+    if(areaId === 'vegetales'){
+      state.vegetalesStatus = 'loading';
+      renderCountList();
+      showScreen('screen-count');
+      loadVegetalesReal(function(ok){
+        state.vegetalesStatus = ok ? 'ok' : 'error';
+        renderCountList();
+      });
+    } else {
+      renderCountList();
+      showScreen('screen-count');
+    }
+  }
+
+  function loadVegetalesReal(cb){
+    var area = areaById('vegetales');
+    fetch(VEGETALES_API + '?action=getVegetales')
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if(res && res.ok && res.data && res.data.products){
+          state.vegetalesTargetColumn = res.data.targetColumn;
+          area.products = res.data.products.map(function(p){
+            return {
+              n: p.name,
+              u: '',
+              min: (typeof p.min === 'number' ? p.min : 0),
+              last: (typeof p.last === 'number' ? p.last : 0),
+              row: p.row
+            };
+          });
+          cb(true);
+        } else {
+          cb(false);
+        }
+      })
+      .catch(function(){ cb(false); });
+  }
+
+  function renderCountList(){
+    var area = areaById(state.areaId);
+    var list = document.getElementById('count-list');
+    list.innerHTML = '';
+
+    if(state.areaId === 'vegetales' && state.vegetalesStatus){
+      var status = document.createElement('div');
+      status.className = 'eyebrow';
+      status.style.margin = '2px 0 12px';
+      if(state.vegetalesStatus === 'loading'){
+        status.textContent = 'Cargando datos reales del Sheet…';
+      } else if(state.vegetalesStatus === 'error'){
+        status.textContent = 'Sin conexión con el Sheet — mostrando datos de ejemplo. Revisa tu internet e intenta de nuevo.';
+        status.style.color = 'var(--warn)';
+      } else {
+        status.textContent = 'Conectado al Sheet en vivo';
+        status.style.color = 'var(--good)';
+      }
+      list.appendChild(status);
+    }
+
+    area.products.forEach(function(p, idx){
+      var row = document.createElement('div');
+      row.className = 'product-row';
+      var below = p.min>0 && p.last < p.min;
+      row.innerHTML =
+        '<div class="product-info">' +
+          '<div class="product-name">'+p.n+'</div>' +
+          '<div class="product-meta">Último: '+fmt(p.last)+' '+p.u+' &middot; Mínimo: '+fmt(p.min)+' '+p.u+'</div>' +
+          (below ? '<span class="pill-warn">Bajo mínimo</span>' : '') +
+        '</div>' +
+        '<div class="stepper">' +
+          '<button class="step-btn" data-act="dec" data-idx="'+idx+'" aria-label="Restar">&minus;</button>' +
+          '<input class="count-input" inputmode="decimal" data-idx="'+idx+'" value="" placeholder="'+fmt(p.last)+'">' +
+          '<button class="step-btn" data-act="inc" data-idx="'+idx+'" aria-label="Sumar">+</button>' +
+        '</div>' +
+        '<span class="unit-label">'+p.u+'</span>';
+      list.appendChild(row);
+    });
+
+    list.querySelectorAll('.step-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var idx = btn.getAttribute('data-idx');
+        var input = list.querySelector('.count-input[data-idx="'+idx+'"]');
+        var p = area.products[idx];
+        var current = state.entries[p.n];
+        if(current === undefined) current = p.last;
+        var step = (p.u === 'uni' || p.u === 'bot') ? 1 : (p.u === 'kg' || p.u === 'lt') ? 0.5 : 5;
+        current = Math.max(0, current + (btn.getAttribute('data-act')==='inc' ? step : -step));
+        state.entries[p.n] = current;
+        input.value = fmt(current);
+        updateProgress();
+      });
+    });
+    list.querySelectorAll('.count-input').forEach(function(input){
+      input.addEventListener('input', function(){
+        var idx = input.getAttribute('data-idx');
+        var p = area.products[idx];
+        var v = parseFloat(input.value.replace(',','.'));
+        if(!isNaN(v)) state.entries[p.n] = v;
+        else delete state.entries[p.n];
+        updateProgress();
+      });
+    });
+    updateProgress();
+  }
+
+  function updateProgress(){
+    var area = areaById(state.areaId);
+    var total = area.products.length;
+    var done = Object.keys(state.entries).length;
+    document.getElementById('progress-text').textContent = done + ' de ' + total + ' productos contados';
+    document.getElementById('progress-fill').style.width = (total? (done/total*100):0) + '%';
+  }
+
+  document.getElementById('btn-back').addEventListener('click', function(){
+    showScreen('screen-home');
+    renderAreas();
+  });
+
+  function finalizeLocalSave(area){
+    var below = [];
+    area.products.forEach(function(p){
+      var v = state.entries.hasOwnProperty(p.n) ? state.entries[p.n] : p.last;
+      if(p.min>0 && v < p.min){
+        below.push({n:p.n, u:p.u, pedir: Math.round((p.min - v)*100)/100});
+      }
+      p.last = v; // reflect new count as latest, for this preview session
+    });
+
+    var doneCount = Object.keys(state.entries).length || area.products.length;
+    document.getElementById('confirm-summary').textContent =
+      doneCount + ' productos actualizados en ' + area.name + ' · Responsable: ' + state.responsable;
+
+    var alertCard = document.getElementById('alert-card');
+    var alertList = document.getElementById('alert-list');
+    alertList.innerHTML = '';
+    if(below.length){
+      alertCard.style.display = 'block';
+      below.forEach(function(item){
+        var row = document.createElement('div');
+        row.className = 'alert-item';
+        row.innerHTML = '<span>'+item.n+'</span><b>Pedir '+fmt(item.pedir)+' '+item.u+'</b>';
+        alertList.appendChild(row);
+      });
+    } else {
+      alertCard.style.display = 'none';
+    }
+
+    // restart the draw-in animation
+    var svg = document.querySelector('.check-wrap');
+    svg.querySelectorAll('circle,path').forEach(function(el){
+      el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+    });
+
+    showScreen('screen-confirm');
+  }
+
+  function saveVegetalesReal(area){
+    var entries = [];
+    area.products.forEach(function(p){
+      if(state.entries.hasOwnProperty(p.n) && p.row){
+        entries.push({row:p.row, value: state.entries[p.n]});
+      }
+    });
+
+    if(!entries.length){
+      finalizeLocalSave(area);
+      return;
+    }
+    if(!state.vegetalesTargetColumn){
+      alert('No se pudo determinar la columna de esta semana. Vuelve a abrir Vegetales e intenta de nuevo.');
+      return;
+    }
+
+    var btn = document.getElementById('btn-guardar');
+    var originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Guardando…';
+
+    fetch(VEGETALES_API, {
+      method: 'POST',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        action: 'guardarVegetales',
+        responsable: state.responsable,
+        entries: entries,
+        targetColumn: state.vegetalesTargetColumn
+      })
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        btn.disabled = false;
+        btn.textContent = originalText;
+        if(res && res.ok){
+          finalizeLocalSave(area);
+        } else {
+          alert('No se pudo guardar en el Sheet: ' + (res && res.error ? res.error : 'error desconocido') + '. Intenta de nuevo.');
+        }
+      })
+      .catch(function(){
+        btn.disabled = false;
+        btn.textContent = originalText;
+        alert('No se pudo conectar con el Sheet. Revisa tu conexión e intenta de nuevo.');
+      });
+  }
+
+  document.getElementById('btn-guardar').addEventListener('click', function(){
+    var area = areaById(state.areaId);
+    if(state.areaId === 'vegetales' && state.vegetalesStatus === 'ok'){
+      saveVegetalesReal(area);
+    } else {
+      finalizeLocalSave(area);
+    }
+  });
+
+  document.getElementById('btn-otra-area').addEventListener('click', function(){
+    showScreen('screen-home');
+    renderAreas();
+  });
+  document.getElementById('btn-terminar').addEventListener('click', function(){
+    showScreen('screen-home');
+    renderAreas();
+  });
+
+  function showScreen(id){
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+  }
+
+  renderWho();
+  renderAreas();
+})();
+</script>
