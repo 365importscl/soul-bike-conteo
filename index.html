@@ -1,4 +1,5 @@
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Conteo Soul Bike</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
@@ -418,8 +419,8 @@
 (function(){
   "use strict";
 
-  var LOGO_BLACK = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iNDgiPjx0ZXh0IHg9IjAiIHk9IjM2IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI4MDAiIGxldHRlci1zcGFjaW5nPSIxIiBmaWxsPSIlMjMxNzE4MWEiPlNPVUwgQklLRTwvdGV4dD48L3N2Zz4=";
-  var LOGO_WHITE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iNDgiPjx0ZXh0IHg9IjAiIHk9IjM2IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI4MDAiIGxldHRlci1zcGFjaW5nPSIxIiBmaWxsPSIlMjNmNGYzZWUiPlNPVUwgQklLRTwvdGV4dD48L3N2Zz4=";
+  var LOGO_BLACK = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iNDgiPjx0ZXh0IHg9IjAiIHk9IjM2IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI4MDAiIGxldHRlci1zcGFjaW5nPSIxIiBmaWxsPSIjMTcxODFhIj5TT1VMIEJJS0U8L3RleHQ+PC9zdmc+";
+  var LOGO_WHITE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMjAiIGhlaWdodD0iNDgiPjx0ZXh0IHg9IjAiIHk9IjM2IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI4MDAiIGxldHRlci1zcGFjaW5nPSIxIiBmaWxsPSIjZjRmM2VlIj5TT1VMIEJJS0U8L3RleHQ+PC9zdmc+";
 
   var isDark = function(){
     var explicit = document.documentElement.getAttribute('data-theme');
