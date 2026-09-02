@@ -461,7 +461,7 @@
       {n:'Aceitunas negras', u:'gr', min:0, last:0},
       {n:'Agua Oxigenada', u:'ml', min:0, last:3}
     ]},
-    { id:'barra', name:'Barra', real:false, products:[
+    { id:'barra', name:'Barra', real:true, products:[
       {n:'Ron blanco', u:'bot', min:6, last:4},
       {n:'Vodka', u:'bot', min:6, last:8},
       {n:'Ginebra', u:'bot', min:4, last:5},
@@ -469,14 +469,14 @@
       {n:'Hielo', u:'kg', min:20, last:25},
       {n:'Agua tónica', u:'uni', min:24, last:30}
     ]},
-    { id:'congelador', name:'Congelador', real:false, products:[
+    { id:'congelador', name:'Congelador', real:true, products:[
       {n:'Papas fritas', u:'kg', min:15, last:10},
       {n:'Pulpa de maracuyá', u:'kg', min:6, last:7},
       {n:'Pulpa de fresa', u:'kg', min:6, last:3},
       {n:'Pan de hamburguesa', u:'uni', min:50, last:60},
       {n:'Helado de vainilla', u:'lt', min:8, last:6}
     ]},
-    { id:'nevera-produccion', name:'Nevera Producción', real:false, products:[
+    { id:'nevera-produccion', name:'Nevera Producción', real:true, products:[
       {n:'Salsa BBQ casera', u:'lt', min:4, last:3},
       {n:'Mayonesa casera', u:'lt', min:5, last:6},
       {n:'Fondo de pollo', u:'lt', min:6, last:4},
@@ -504,8 +504,8 @@
     responsable:null,
     areaId:null,
     entries:{}, // productName -> value entered this session
-    vegetalesTargetColumn:null,
-    vegetalesStatus:null // null | 'loading' | 'ok' | 'error'
+    targetColumn:null,
+    loadStatus:null // null | 'loading' | 'ok' | 'error'
   };
 
   try{
@@ -607,12 +607,12 @@
     var area = areaById(areaId);
     document.getElementById('count-area-name').textContent = area.name;
     document.getElementById('count-responsable').textContent = 'Responsable: ' + state.responsable;
-    if(areaId === 'vegetales'){
-      state.vegetalesStatus = 'loading';
+    if(area.real){
+      state.loadStatus = 'loading';
       renderCountList();
       showScreen('screen-count');
-      loadVegetalesReal(function(ok){
-        state.vegetalesStatus = ok ? 'ok' : 'error';
+      loadAreaReal(areaId, function(ok){
+        state.loadStatus = ok ? 'ok' : 'error';
         renderCountList();
       });
     } else {
@@ -621,13 +621,16 @@
     }
   }
 
-  function loadVegetalesReal(cb){
-    var area = areaById('vegetales');
-    fetch(VEGETALES_API + '?action=getVegetales')
+  function loadAreaReal(areaId, cb){
+    var area = areaById(areaId);
+    var url = (areaId === 'vegetales')
+      ? VEGETALES_API + '?action=getVegetales'
+      : VEGETALES_API + '?action=getArea&area=' + encodeURIComponent(areaId);
+    fetch(url)
       .then(function(r){ return r.json(); })
       .then(function(res){
         if(res && res.ok && res.data && res.data.products){
-          state.vegetalesTargetColumn = res.data.targetColumn;
+          state.targetColumn = res.data.targetColumn;
           area.products = res.data.products.map(function(p){
             return {
               n: p.name,
@@ -650,13 +653,13 @@
     var list = document.getElementById('count-list');
     list.innerHTML = '';
 
-    if(state.areaId === 'vegetales' && state.vegetalesStatus){
+    if(area.real && state.loadStatus){
       var status = document.createElement('div');
       status.className = 'eyebrow';
       status.style.margin = '2px 0 12px';
-      if(state.vegetalesStatus === 'loading'){
+      if(state.loadStatus === 'loading'){
         status.textContent = 'Cargando datos reales del Sheet…';
-      } else if(state.vegetalesStatus === 'error'){
+      } else if(state.loadStatus === 'error'){
         status.textContent = 'Sin conexión con el Sheet — mostrando datos de ejemplo. Revisa tu internet e intenta de nuevo.';
         status.style.color = 'var(--warn)';
       } else {
@@ -763,7 +766,7 @@
     showScreen('screen-confirm');
   }
 
-  function saveVegetalesReal(area){
+  function saveAreaReal(area){
     var entries = [];
     area.products.forEach(function(p){
       if(state.entries.hasOwnProperty(p.n) && p.row){
@@ -775,8 +778,8 @@
       finalizeLocalSave(area);
       return;
     }
-    if(!state.vegetalesTargetColumn){
-      alert('No se pudo determinar la columna de esta semana. Vuelve a abrir Vegetales e intenta de nuevo.');
+    if(!state.targetColumn){
+      alert('No se pudo determinar la columna de esta semana. Vuelve a abrir el área e intenta de nuevo.');
       return;
     }
 
@@ -785,15 +788,15 @@
     btn.disabled = true;
     btn.textContent = 'Guardando…';
 
+    var isVeg = (state.areaId === 'vegetales');
+    var body = isVeg
+      ? { action:'guardarVegetales', responsable: state.responsable, entries: entries, targetColumn: state.targetColumn }
+      : { action:'guardarArea', area: state.areaId, responsable: state.responsable, entries: entries, targetColumn: state.targetColumn };
+
     fetch(VEGETALES_API, {
       method: 'POST',
       headers: {'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({
-        action: 'guardarVegetales',
-        responsable: state.responsable,
-        entries: entries,
-        targetColumn: state.vegetalesTargetColumn
-      })
+      body: JSON.stringify(body)
     })
       .then(function(r){ return r.json(); })
       .then(function(res){
@@ -814,8 +817,8 @@
 
   document.getElementById('btn-guardar').addEventListener('click', function(){
     var area = areaById(state.areaId);
-    if(state.areaId === 'vegetales' && state.vegetalesStatus === 'ok'){
-      saveVegetalesReal(area);
+    if(area.real && state.loadStatus === 'ok'){
+      saveAreaReal(area);
     } else {
       finalizeLocalSave(area);
     }
